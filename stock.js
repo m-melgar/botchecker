@@ -1,8 +1,10 @@
 const puppeteer = require('puppeteer-extra')
 // https://rapidapi.com/restyler/api/scrapeninja
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const nReadlines = require('n-readlines');
+const nReadlines = require('n-readlines')
 puppeteer.use(StealthPlugin())
+const mysql = require('mysql')
+const fs = require('fs')
 
 async function CMretrieve(url){
     const browser = await puppeteer.launch();
@@ -79,11 +81,29 @@ async function PCretrieve(url){
 }
 
 // main
+// if db do not exist, create it, other wise read it
+const db_path = './db.json'
+var dict = {};
+try {
+    if (fs.existsSync(db_path)) {
+        // file exist
+        dict= require(db_path);
+    }else{
+        // file doesn't exist
+        var dictstring = JSON.stringify(dict);
+        fs.writeFile(db_path, dictstring, function(err, result) {
+            if(err) console.log('error', err);
+        });
+    }
+} catch(err) {
+    console.error(err)
+}
+
 let broadbandLines = new nReadlines('cm.txt');
 while (line = broadbandLines.next()) {
-    CMretrieve(line.toString('ascii'));
+    [Name, Availability, Price] = CMretrieve(line.toString('ascii'));
 }
 broadbandLines = new nReadlines('pc.txt');
 while (line = broadbandLines.next()) {
-    PCretrieve(line.toString('ascii'));
+    [Name, Availability, Price] = PCretrieve(line.toString('ascii'));
 }

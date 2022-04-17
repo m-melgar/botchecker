@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer-extra')
 // https://rapidapi.com/restyler/api/scrapeninja
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const nReadlines = require('n-readlines');
 puppeteer.use(StealthPlugin())
 
 async function CMretrieve(url){
@@ -77,6 +78,12 @@ async function PCretrieve(url){
     return {srcName, srcAvailability,srcPrice}
 }
 
-CMretrieve('https://www.coolmod.com/zotac-gaming-geforce-rtx-3090-trinity-oc-24gb-gddr6x-tarjeta-grafica/');
-PCretrieve('https://www.pccomponentes.com/xfx-amd-radeon-rx-5600-xt-14gbps-thicc-iii-ultra-6gb-gddr6-reacondicionado');
-PCretrieve('https://www.pccomponentes.com/asus-dual-geforce-rtx-3060-oc-edition-v2-12gb-gddr6');
+// main
+let broadbandLines = new nReadlines('cm.txt');
+while (line = broadbandLines.next()) {
+    CMretrieve(line.toString('ascii'));
+}
+broadbandLines = new nReadlines('pc.txt');
+while (line = broadbandLines.next()) {
+    PCretrieve(line.toString('ascii'));
+}

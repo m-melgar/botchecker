@@ -3,8 +3,8 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const nReadlines = require('n-readlines')
 puppeteer.use(StealthPlugin())
-const mysql = require('mysql')
 const fs = require('fs')
+const beep = require('beepbeep')
 
 async function CMretrieve(url){
     const browser = await puppeteer.launch();
@@ -19,8 +19,8 @@ async function CMretrieve(url){
     const[el] = await page.$x('//*[@id="messageStock"]')
     const avail = await  el.getProperty('textContent');
     let srcAvailability = await avail.jsonValue();
-    if (srcAvailability == 'Agotado') srcAvailability = 'OUT OF STOCK'
-    else srcAvailability = 'IN STOCK'
+    if (srcAvailability == 'Agotado') srcAvailability = 0
+    else srcAvailability = 1
 
     // Price
     const[el2] = await page.$x('//*[@id="normalpricenumber"]')
@@ -32,7 +32,6 @@ async function CMretrieve(url){
     const name = await  el3.getProperty('textContent');
     const srcName = await name.jsonValue();
 
-    console.log({srcAvailability,srcPrice, srcName})
 
     await page.close();
     await browser.close()
@@ -58,8 +57,8 @@ async function PCretrieve(url){
     const avail = await  el.getProperty('textContent');
     let srcAvailability = await avail.jsonValue();
     srcAvailability = srcAvailability.replace(/\n]|\n/gi, '')
-    if (srcAvailability == 'Avísame') srcAvailability = 'OUT OF STOCK'
-    else srcAvailability = 'IN STOCK'
+    if (srcAvailability == 'Avísame') srcAvailability = 0
+    else srcAvailability = 1
 
 
     // Price
@@ -72,8 +71,6 @@ async function PCretrieve(url){
     const name = await  el3.getProperty('textContent');
     const srcName = await name.jsonValue();
 
-    console.log({srcAvailability,srcPrice, srcName})
-
     await page.close();
     await browser.close()
 
@@ -83,14 +80,14 @@ async function PCretrieve(url){
 // main
 // if db do not exist, create it, other wise read it
 const db_path = './db.json'
-var dict = {};
+var db = {};
 try {
     if (fs.existsSync(db_path)) {
         // file exist
-        dict= require(db_path);
+        db= require(db_path);
     }else{
         // file doesn't exist
-        var dictstring = JSON.stringify(dict);
+        var dictstring = JSON.stringify(db);
         fs.writeFile(db_path, dictstring, function(err, result) {
             if(err) console.log('error', err);
         });
@@ -101,9 +98,65 @@ try {
 
 let broadbandLines = new nReadlines('cm.txt');
 while (line = broadbandLines.next()) {
-    [Name, Availability, Price] = CMretrieve(line.toString('ascii'));
+    let output;
+    (async () => {
+        var url = line.toString('ascii')
+        output = await CMretrieve(url);
+        // if exist in db
+        if (url in db){
+            // if price decreased and in stock
+            if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }else if (db[url][0] === 0 && output.srcAvailability ===1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }else{}
+        // no existe en db
+        }else{
+            console.log('adding to db... CM')
+            db[url] = [output.srcAvailability, output.srcPrice]
+            if(output.srcAvailability ===1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }
+        }
+        var dictstring = JSON.stringify(db);
+        fs.writeFile(db_path, dictstring, function(err, result) {
+            if(err) console.log('error', err);
+        });
+    })()
+
 }
 broadbandLines = new nReadlines('pc.txt');
 while (line = broadbandLines.next()) {
-    [Name, Availability, Price] = PCretrieve(line.toString('ascii'));
+    let output;
+    (async () => {
+        var url = line.toString('ascii')
+        output = await PCretrieve(url);
+        // if exist in db
+        if (url in db){
+            // if price decreased and in stock
+            if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }else if (db[url][0] === 0 && output.srcAvailability ===1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }else{}
+        // no existe en db
+        }else{
+            console.log('adding to db...')
+            db[url] = [output.srcAvailability, output.srcPrice]
+            if(output.srcAvailability ===1){
+                console.log(output.srcPrice, 'IN STOCK')
+                beep(3, 1000)
+            }
+        }
+        var dictstring = JSON.stringify(db);
+        fs.writeFile(db_path, dictstring, function(err, result) {
+            if(err) console.log('error', err);
+        });
+    })()
+
 }

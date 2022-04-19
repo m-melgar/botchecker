@@ -6,6 +6,41 @@ puppeteer.use(StealthPlugin())
 const fs = require('fs')
 const beep = require('beepbeep')
 
+//TEXT STYLE
+const name = `
+    color:black;
+    background-color:white;
+    border-left: 1px solid yellow;
+    border-bottom: 1px solid yellow;
+    border-top: 1px solid yellow;
+    border-right: 1px solid yellow;
+    padding: 8px;
+    font-weight: 600;
+    font-family: Courier;
+`;
+const instock = `
+    color:black;
+    background-color:red;
+    border-left: 1px solid yellow;
+    border-bottom: 1px solid yellow;
+    border-top: 1px solid yellow;
+    border-right: 1px solid yellow;
+    padding: 8px;
+    font-weight: 600;
+    font-family: Courier;
+`;
+const outstock = `
+    color:white;
+    background-color:green;
+    border-left: 1px solid yellow;
+    border-bottom: 1px solid yellow;
+    border-top: 1px solid yellow;
+    border-right: 1px solid yellow;
+    padding: 8px;
+    font-weight: 600;
+    font-family: Courier;
+`;
+
 async function CMretrieve(url){
     const browser = await puppeteer.launch();
     const page = await browser.newPage()
@@ -77,7 +112,6 @@ async function PCretrieve(url){
     return {srcName, srcAvailability,srcPrice}
 }
 
-// main
 // if db do not exist, create it, other wise read it
 const db_path = './db.json'
 var db = {};
@@ -106,21 +140,27 @@ while (line = broadbandLines.next()) {
         if (url in db){
             // if price decreased and in stock
             if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
+
                 beep(3, 1000)
             }else if (db[url][0] === 0 && output.srcAvailability ===1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }else{
-                console.log(output.srcName, output.srcPrice, 'OUT OF STOCK')
+                let aux_str
+                if(output.srcAvailability === 1) aux_str = 'IN STOCK'
+                else aux_str = 'OUT OF STOCK'
+                console.log('\033[37m',output.srcName,'\033[0m', output.srcPrice, aux_str)
             }
         // no existe en db
         }else{
             console.log('adding to db... CM')
             db[url] = [output.srcAvailability, output.srcPrice]
             if(output.srcAvailability ===1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
+            }else {
+                console.log('\033[31m',output.srcName,'\033[0m', output.srcPrice, 'OUT OF STOCK')
             }
         }
         var dictstring = JSON.stringify(db);
@@ -140,21 +180,26 @@ while (line = broadbandLines.next()) {
         if (url in db){
             // if price decreased and in stock
             if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }else if (db[url][0] === 0 && output.srcAvailability ===1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }else{
-                console.log(output.srcName, output.srcPrice, 'OUT OF STOCK')
+                let aux_str
+                if(output.srcAvailability === 1) aux_str = 'IN STOCK'
+                else aux_str = 'OUT OF STOCK'
+                console.log('\033[37m',output.srcName,'\033[0m', output.srcPrice, aux_str)
             }
         // no existe en db
         }else{
             console.log('adding to db...')
             db[url] = [output.srcAvailability, output.srcPrice]
             if(output.srcAvailability ===1){
-                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
+                console.log('\033[32m',output.srcName,'\033[0m', output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
+            }else{
+                console.log('\033[31m',output.srcName,'\033[0m', output.srcPrice, 'OUT OF STOCK')
             }
         }
         var dictstring = JSON.stringify(db);

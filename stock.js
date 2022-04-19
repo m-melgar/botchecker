@@ -106,18 +106,20 @@ while (line = broadbandLines.next()) {
         if (url in db){
             // if price decreased and in stock
             if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }else if (db[url][0] === 0 && output.srcAvailability ===1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
-            }else{}
+            }else{
+                console.log(output.srcName, output.srcPrice, 'OUT OF STOCK')
+            }
         // no existe en db
         }else{
             console.log('adding to db... CM')
             db[url] = [output.srcAvailability, output.srcPrice]
             if(output.srcAvailability ===1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }
         }
@@ -138,18 +140,20 @@ while (line = broadbandLines.next()) {
         if (url in db){
             // if price decreased and in stock
             if(output.srcPrice < db[url][1] && output.srcAvailability === 1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }else if (db[url][0] === 0 && output.srcAvailability ===1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
-            }else{}
+            }else{
+                console.log(output.srcName, output.srcPrice, 'OUT OF STOCK')
+            }
         // no existe en db
         }else{
             console.log('adding to db...')
             db[url] = [output.srcAvailability, output.srcPrice]
             if(output.srcAvailability ===1){
-                console.log(output.srcPrice, 'IN STOCK')
+                console.log(output.srcName, output.srcPrice, 'IN STOCK', url)
                 beep(3, 1000)
             }
         }

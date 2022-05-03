@@ -58,18 +58,21 @@ async function CMretrieve(url){
     else srcAvailability = 1
 
     // Price
-    const[el2] = await page.$x('//*[@id="normalpricenumber"]')
+    const[el2] = await page.$x('//*[@id="productRightPrice"]')
     const price = await  el2.getProperty('textContent');
-    const srcPrice = await price.jsonValue();
+    let srcPrice = await price.jsonValue();
+    srcPrice = srcPrice.replace(/(\n|\n|\n\n|\s)/gm, "");
 
     // Name
-    const[el3] = await page.$x('//*[@id="coolbody"]/div/div[2]/div[3]/div/div[2]/h1')
+    const[el3] = await page.$x('//*[@id="coolbody"]/div/div[4]/div[3]/div/div[2]/h1')
     const name = await  el3.getProperty('textContent');
     const srcName = await name.jsonValue();
 
 
     await page.close();
     await browser.close()
+
+    //console.log({srcAvailability,srcPrice, srcName})
 
     return {srcAvailability,srcPrice, srcName}
 }
@@ -109,6 +112,7 @@ async function PCretrieve(url){
     await page.close();
     await browser.close()
 
+    //console.log({srcAvailability,srcPrice, srcName})
     return {srcName, srcAvailability,srcPrice}
 }
 
@@ -131,13 +135,14 @@ try {
     console.error(err)
 }
 
-while(true){
+(async function() {while(true){
 
     let broadbandLines = new nReadlines('cm.txt');
     while (line = broadbandLines.next()) {
         let output;
-        (async () => {
+
             var url = line.toString('ascii')
+            // console.log("Processing: ", url)
             output = await CMretrieve(url);
             // if exist in db
             if (url in db){
@@ -170,15 +175,14 @@ while(true){
             fs.writeFile(db_path, dictstring, function(err, result) {
                 if(err) console.log('error', err);
             });
-        })()
 
     }
     broadbandLines = new nReadlines('pc.txt');
     while (line = broadbandLines.next()) {
         let output;
-        (async () => {
             var url = line.toString('ascii')
             output = await PCretrieve(url);
+            // console.log("Processing: ", url)
             // if exist in db
             if (url in db){
                 // if price decreased and in stock
@@ -209,10 +213,10 @@ while(true){
             fs.writeFile(db_path, dictstring, function(err, result) {
                 if(err) console.log('error', err);
             });
-        })()
 
     }
-}
+}})()
+
 
 
 
